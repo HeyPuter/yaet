@@ -22,10 +22,14 @@ const open_window = (data) => {
         const win = new BrowserWindow({
             width: 800,
             height: 600,
+            backgroundColor: '#000000',
+            transparent: true,
             webPreferences: {
                 preload: path_.join(__dirname, 'preload.js'),
             }
         });
+        
+        win.menuBarVisible = false;
 
         const window = TermWindow.create({
             context,

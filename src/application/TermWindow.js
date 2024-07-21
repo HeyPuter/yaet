@@ -10,6 +10,10 @@ class TermWindow extends Base {
         const { win, values, context } = this.options;
 
         const type = args.shift();
+        if ( type === 'show' ) {
+            win.show();
+            return;
+        }
         if ( type === 'values' ) {
             return values;
         }
@@ -44,6 +48,12 @@ class TermWindow extends Base {
             const [window_size] = args;
             console.log('resize event', window_size);
             this.proc.resize(window_size.cols, window_size.rows);
+            return;
+        }
+        if ( type === 'write-clip' ) {
+            const { clipboard } = require('electron');
+            const [text] = args;
+            clipboard.writeText(text, 'clipboard');
         }
     }
     on_close () {

@@ -16,3 +16,6 @@ BODY {
 #terminal > div {
     height: 100vh;
 }
+.xterm-viewport::-webkit-scrollbar{
+    display: none;
+}
