@@ -78,6 +78,12 @@ const start_webserver = () => {
 };
 
 const main = async () => {
+    const first = app.requestSingleInstanceLock();
+    if ( ! first ) {
+        app.quit();
+        return;
+    }
+    
     await app.whenReady();
     
     ipcMain.handle('message', (e, ...args) => {
@@ -87,6 +93,23 @@ const main = async () => {
     
     app.on('window-all-closed', () => {
         // NOOP: prevent default exit behavior
+    });
+    
+    app.on('second-instance', (
+        event, commandLine, workingDirectory,
+        additionalData,
+    ) => {
+        open_window({
+            type: 'term',
+            shell: process.env.SHELL || '/bin/bash',
+            pwd: workingDirectory,
+        });
+    });
+
+    open_window({
+        type: 'term',
+        shell: process.env.SHELL || '/bin/bash',
+        pwd: process.cwd(),
     });
 
     start_webserver();
