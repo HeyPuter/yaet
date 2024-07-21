@@ -38,6 +38,12 @@ class TermWindow extends Base {
             }
             const [data] = args;
             this.proc.write(data);
+            return;
+        }
+        if ( type === 'resize' ) {
+            const [window_size] = args;
+            console.log('resize event', window_size);
+            this.proc.resize(window_size.cols, window_size.rows);
         }
     }
     on_close () {

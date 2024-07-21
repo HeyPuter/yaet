@@ -31,5 +31,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         term.onData(data => {
             preload.message('stdin', data);
         })
+        preload.message('resize', {
+            cols: term.cols,
+            rows: term.rows,
+        });
+        term.onResize(evt => {
+            preload.message('resize', evt);
+        });
     }
 });
