@@ -1,0 +1,1 @@
+- [ ] Before closing a terminal, prompt if the shell has child processes.

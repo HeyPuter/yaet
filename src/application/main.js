@@ -9,7 +9,7 @@ const vhost = require('vhost');
 const path_ = require('node:path');
 const { WinManager } = require('./WinManager');
 const { ProcessManager } = require('./ProcessManager');
-const { TermWin } = require('./TermWin');
+const { TermWindow } = require('./TermWindow');
 
 let context = {};
 context.processManager = ProcessManager.create({ context });
@@ -27,7 +27,7 @@ const open_window = (data) => {
             }
         });
 
-        const window = TermWin.create({
+        const window = TermWindow.create({
             context,
             win,
             values: {

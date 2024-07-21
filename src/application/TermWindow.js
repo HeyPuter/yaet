@@ -1,6 +1,11 @@
 const { Base } = require("../lang-util/Base");
 
-class TermWin extends Base {
+class TermWindow extends Base {
+    _construct () {
+        const { win } = this.options;
+        win.on('close', this.on_close.bind(this));
+        this.closing_ = false;
+    }
     on_message (e, ...args) {
         const { win, values, context } = this.options;
 
@@ -15,8 +20,15 @@ class TermWin extends Base {
                 cwd: values.pwd,
             });
             this.proc = proc;
-            proc.onData(data => {
+            this.on_data_ = data => {
                 win.webContents.send('pty', data);
+            };
+            proc.onData(data => this.on_data_(data));
+            proc.on('close', code => {
+                if ( this.closing_ ) return;
+                this.closing_ = true;
+                this.on_data_ = () => {};
+                win.close();
             });
             return;
         }
@@ -28,6 +40,12 @@ class TermWin extends Base {
             this.proc.write(data);
         }
     }
+    on_close () {
+        if ( this.closing_ ) return;
+        this.closing_ = true;
+        this.on_data_ = () => {};
+        this.proc.kill('SIGHUP');
+    }
 }
 
-module.exports = { TermWin };
+module.exports = { TermWindow };
