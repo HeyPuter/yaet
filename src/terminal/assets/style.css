@@ -1,0 +1,9 @@
+BODY {
+    margin: 0;
+    padding: 0;
+    color: #333333;
+}
+
+#terminal {
+    height: 100vh;
+}
