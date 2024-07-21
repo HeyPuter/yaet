@@ -38,5 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         term.onResize(evt => {
             preload.message('resize', evt);
         });
+        term.focus();
     }
 });

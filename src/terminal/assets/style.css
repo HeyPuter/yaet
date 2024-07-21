@@ -1,9 +1,18 @@
 BODY {
     margin: 0;
     padding: 0;
-    color: #333333;
+    background-color: #333333;
 }
 
 #terminal {
+    height: 100vh;
+    background-color: #333333;
+}
+
+/*
+    ensures scrollbar spans entire window,
+    doesn't seem to break anything
+*/
+#terminal > div {
     height: 100vh;
 }
