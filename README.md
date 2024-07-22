@@ -1,5 +1,6 @@
 <h3 align="center">YAET</h3>
 <h4 align="center">Yet Another Terminal Emulator</h4>
+<h3 align="center"><img alt="screenshot" src="./doc/scrn.png">
 </h3>
 
 <hr>
