@@ -23,6 +23,11 @@ type IFrameEntry = {
     visible?: boolean,
 }
 
+type IWriteSrcdocOptions = {
+    srcdoc: string,
+    height?: string,
+}
+
 export class WebviewAddon implements ITerminalAddon {
     private _terminal: any
     private el: HTMLDivElement | undefined
@@ -80,10 +85,24 @@ export class WebviewAddon implements ITerminalAddon {
         this._terminal = terminal;
         this._renderService = terminal._core._renderService;
         terminal.parser.registerOscHandler(21337, data => {
-            const PREFIX = 'web-terminal;write-srcdoc;';
+            const PREFIX = 'web-terminal;write-srcdoc';
             if ( ! data.startsWith(PREFIX) ) return false;
             data = data.slice(PREFIX.length);
-            this.addWebview({ srcdoc: data });
+            const options: { [key: string]: string } = {};
+            if ( data[0] === '?' ) {
+                const i = data.indexOf(';');
+                if ( i === -1 ) {
+                    console.warn('missing semicolon in 21337 OSC sequence');
+                    return false;
+                }
+                const querystring = data.slice(0, i);
+                const params = new URLSearchParams(querystring);
+                for (const [k, v] of params) {
+                    options[k] = v;
+                }
+                data = data.slice(i+1);
+            } else data = data.slice(1);
+            this.addWebview({ ...options, srcdoc: data });
             return true;
         });
         
@@ -175,7 +194,7 @@ export class WebviewAddon implements ITerminalAddon {
         return this._terminal._core._coreBrowserService?.window.document;
     }
     
-    public addWebview (options: { srcdoc: string }) {
+    public addWebview (options: IWriteSrcdocOptions) {
         const buffer = this._terminal._core.buffer;
         let x = buffer.x;
         let y = buffer.y;
@@ -188,7 +207,9 @@ export class WebviewAddon implements ITerminalAddon {
             y++;
         }
         
-        const n_rows = Math.ceil(204 / this.cellSize.height);
+        const height = options.height ? Number.parseInt(options.height) : 204;
+        
+        const n_rows = Math.ceil(height / this.cellSize.height);
         for ( let i=1 ; i < n_rows ; i++ ) {
             this._terminal.write(' \r\n');
         }
@@ -206,7 +227,8 @@ export class WebviewAddon implements ITerminalAddon {
         
         let el = iframe_el as HTMLElement;
         
-        const borders = ['#000000', '#FFFFFF'];
+        // const borders = ['#000000', '#FFFFFF'];
+        const borders: string[] = [];
         for ( const border of borders ) {
             const border_el = document.createElement('div');
             el.style.boxSizing = 'border-box';
@@ -219,7 +241,7 @@ export class WebviewAddon implements ITerminalAddon {
         el.style.boxSizing = 'border-box';
 
         el.style.width = '100%';
-        el.style.height = '204px';
+        el.style.height = height + 'px';
         el.style.position = 'absolute';
         el.style.top = `${y*this.cellSize.height}px`;
         el.style.left = '0';

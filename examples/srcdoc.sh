@@ -28,5 +28,8 @@ IFS='' read -r -d '' page <<"EOF"
 EOF
 echo -e "\x1B]21337;web-terminal;write-srcdoc;${page}\x1B\\"
 # BUG: text renders under iframe without sleep
+sleep 0.2
+echo -e "\x1B]21337;web-terminal;write-srcdoc?height=50;${page}\x1B\\"
+# BUG: text renders under iframe without sleep
 sleep 0.1
 echo "Maybe you should try YAET!"
