@@ -6,6 +6,7 @@ import type {
     ITerminalAddon,
     Terminal,
     IDisposable,
+    IBufferLine,
 } from '@xterm/xterm';
 
 import type {
@@ -16,6 +17,11 @@ import type {
     ICellSize,
 } from '@xterm/addon-image/src/Types';
 
+type IFrameEntry = {
+    el: HTMLElement,
+    visible?: boolean,
+}
+
 export class WebviewAddon implements ITerminalAddon {
     private _terminal: any
     private el: HTMLDivElement | undefined
@@ -24,6 +30,19 @@ export class WebviewAddon implements ITerminalAddon {
     
     private _disposables: IDisposable[] = [];
     private _handlers: Map<String, IResetHandler> = new Map();
+    
+    private _iframe_registry: { [key: number]: IFrameEntry };
+    private _next_iframe_id: number = 0;
+    private _iframe_rows_map: (number|undefined)[]
+    constructor () {
+        this._iframe_registry = {};
+        this._iframe_rows_map = [];
+    }
+    private _register_iframe(entry: IFrameEntry) {
+        const id = ++this._next_iframe_id;
+        this._iframe_registry[id] = entry;
+        return id;
+    }
 
     public dispose(): void {
         for (const obj of this._disposables) {
@@ -64,20 +83,37 @@ export class WebviewAddon implements ITerminalAddon {
     }
 
     render (range: { start: number, end: number }): void {
+        const { start, end } = range;
+        const buffer = this._terminal._core.buffer;
+        
+        console.log('render', range);
+
         // console.log('render() called!', range);
         if ( ! this.el ) {
             this.insertLayerToDom();
         }
+        if ( ! this.el ) throw new Error('this won\'t happen');
+        
+        for ( let row = start ; row <= end ; row++ ) {
+            this._iframe_rows_map[row] = undefined;
+            // NOTE: couldn't use line as IBufferLineExt because
+            // typescript told me 'getBg' is missing, but for some
+            // reason this works in addon-image/src/ImageStorage.ts.
+            const line = buffer.lines.get(row + buffer.ydisp);
+            if ( ! line ) continue;
+            const e = line._extendedAttrs[0];
+            if ( ! e?.iframeId ) continue;
+            this._iframe_rows_map[row] = e.iframeId;
+        }
+        
+        this._update_visible_iframes();
         
         // typescript made me do this
-        if ( this.el ) {
-            const buffer = this._terminal._core.buffer;
-            console.log('scroll?', buffer.ydisp * this.cellSize.height);
-            this.el.style.height = '' + (
-                (buffer.ydisp + buffer._rows) * this.cellSize.height
-            ) + 'px';
-            this.el.scrollTop = buffer.ydisp * this.cellSize.height;
-        }
+        console.log('scroll?', buffer.ydisp * this.cellSize.height);
+        this.el.style.height = '' + (
+            (buffer.ydisp + buffer._rows) * this.cellSize.height
+        ) + 'px';
+        this.el.scrollTop = buffer.ydisp * this.cellSize.height;
     }
     
     public insertLayerToDom(): void {
@@ -160,10 +196,57 @@ export class WebviewAddon implements ITerminalAddon {
         el.style.position = 'absolute';
         el.style.top = `${y*this.cellSize.height}px`;
         el.style.left = '0';
+
+        const entry: IFrameEntry = {
+            el,
+            visible: true,
+        };
+        const id = this._register_iframe(entry);
+        
+        for ( let i = y ; i < y + n_rows ; i++ ) {
+            const line = buffer.lines.get(i);
+            console.log('line?', line);
+            // TODO: I don't know why line is undefined sometimes
+            if ( ! line ) continue;
+            this._writeToCell(line, id);
+        }
         
         this.el_inner?.appendChild(el);
     }
     
+    // used 'any' type here because '_extendedAttrs' is on IBufferLineExt
+    // from the image addon, but not in IBufferLine from @xterm/xterm,
+    // so I'm not sure of the correct way to type this.
+    private _writeToCell(line: any, iframeId: number) {
+        const ext_attrs = (() => {
+            let ext_attrs = line._extendedAttrs[0];
+            if ( ext_attrs ) return ext_attrs;
+            
+            // This definitely has potential to break something
+            return line._extendedAttrs[0] = {};
+        })();
+        
+        ext_attrs.iframeId = iframeId;
+    }
+    
+    private _update_visible_iframes () {
+        for ( const id in this._iframe_registry ) {
+            this._iframe_registry[id].visible = false;
+        }
+        for ( const id of this._iframe_rows_map ) {
+            if ( id === undefined ) continue;
+            this._iframe_registry[id].visible = true;
+        }
+        for ( const id in this._iframe_registry ) {
+            const entry = this._iframe_registry[id];
+            if ( entry.visible ) {
+                entry.el.style.visibility = 'visible';
+            } else {
+                entry.el.style.visibility = 'hidden';
+            }
+        }
+    }
+
   /**
    * Dimensions of the terminal.
    * Forwarded from internal render service.
