@@ -1,0 +1,18 @@
+{
+  "name": "xterm-addon-webview",
+  "version": "1.0.0",
+  "main": "dist/WebviewAddon.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "description": "",
+  "dependencies": {
+    "@xterm/xterm": "^5.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3"
+  }
+}

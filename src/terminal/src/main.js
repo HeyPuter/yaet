@@ -3,6 +3,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
 import { ClipboardAddon } from '@xterm/addon-clipboard';
 import { ImageAddon } from '@xterm/addon-image';
+import { WebviewAddon } from 'xterm-addon-webview';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import XtermWebFont from 'xterm-webfont';
 // import { LigaturesAddon } from '@xterm/addon-ligatures';
@@ -32,11 +33,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     observer.observe(el_terminal);
     
     // TODO: put behind config parameter
-    const webgl = new WebglAddon();
-    term.loadAddon(webgl);
+    // const webgl = new WebglAddon();
+    // term.loadAddon(webgl);
 
     const imageAddon = new ImageAddon();
     term.loadAddon(imageAddon);
+    
+    term.loadAddon(new WebviewAddon());
     
     // This isn't really working
     // const ligaturesAddon = new LigaturesAddon();
