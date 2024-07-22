@@ -1,0 +1,21 @@
+{
+  "name": "any-config",
+  "version": "1.0.0",
+  "main": "exports.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "description": "",
+  "devDependencies": {
+    "dedent": "^1.5.3",
+    "mocha": "^10.7.0"
+  },
+  "dependencies": {
+    "json5": "^2.2.3",
+    "toml": "^3.0.0",
+    "yaml": "^2.4.5"
+  }
+}
