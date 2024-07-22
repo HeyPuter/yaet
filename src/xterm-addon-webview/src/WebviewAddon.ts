@@ -93,6 +93,7 @@ export class WebviewAddon implements ITerminalAddon {
             this.insertLayerToDom();
         }
         if ( ! this.el ) throw new Error('this won\'t happen');
+        if ( ! this.el_inner ) throw new Error('this won\'t happen');
         
         for ( let row = start ; row <= end ; row++ ) {
             this._iframe_rows_map[row] = undefined;
@@ -110,7 +111,7 @@ export class WebviewAddon implements ITerminalAddon {
         
         // typescript made me do this
         console.log('scroll?', buffer.ydisp * this.cellSize.height);
-        this.el.style.height = '' + (
+        this.el_inner.style.height = '' + (
             (buffer.ydisp + buffer._rows) * this.cellSize.height
         ) + 'px';
         this.el.scrollTop = buffer.ydisp * this.cellSize.height;
@@ -136,7 +137,6 @@ export class WebviewAddon implements ITerminalAddon {
 
         this.el_inner = document.createElement('div');
         this.el.appendChild(this.el_inner);
-        this.el_inner.style.minHeight = '200%';
         this.el_inner.style.width = '100%';
         
         this._terminal._core.screenElement.appendChild(this.el);
