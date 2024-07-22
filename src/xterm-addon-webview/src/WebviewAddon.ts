@@ -102,6 +102,9 @@ export class WebviewAddon implements ITerminalAddon {
                 }
                 data = data.slice(i+1);
             } else data = data.slice(1);
+            if ( options.encoding && options.encoding === 'base64' ) {
+                data = Buffer.from(data, 'base64').toString('utf-8');
+            }
             this.addWebview({ ...options, srcdoc: data });
             return true;
         });

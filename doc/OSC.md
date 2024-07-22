@@ -2,16 +2,17 @@
 
 ## The `21337` OSC Sequences
 
-YAET interprets OSC codes beginning with `21337;web-terminal;`,
+**YAET**-specific features use OSC codes beginning with `21337;web-terminal;`,
 
 ```
 <ESC>]21337;web-terminal;<command>;<data><ESC>\
 ```
 
 In this way **YAET** does not reserve the entire space of OSC
-sequences beginning with `21337`, so feel free to use the
-same identifier in your own projects following this
-convention: `<ESC>]21337;<domain>;...<ESC>\`.
+sequences with the function identifier `21337`.
+This leaves room for other projects to use a similar
+convention provided they replace `web-terminal` with
+some other string.
 
 ### Command Attributes
 
@@ -35,6 +36,11 @@ full width of the terminal. If a height is not specified, the
 resulting height is undefined but guarenteed to be at least one
 row in height.
 
+| Parameter  | Description |
+| ---------- | ----------- |
+| `height`   | height of frame in pixels |
+| `encoding` | set this to `base64` to transmit a base64 string |
+
 #### Example without parameters
 
 ```sh
@@ -45,4 +51,14 @@ echo -e "\x1B]21337;web-terminal;write-srcdoc;<!DOCTYPE><html></html>\x1B\\"
 
 ```sh
 echo -e "\x1B]21337;web-terminal;write-srcdoc?height=50;<!DOCTYPE><html></html>\x1B\\"
+```
+
+#### Example with `base64` encoding
+
+**YAET** uses [xtermjs](https://github.com/xtermjs/xterm.js),
+so OSC sequence parsing supports unicode characters. However, for full compatability
+with other terminal emulators it is best to transmit unicode strings as base64.
+
+```sh
+echo -e "\x1B]21337;web-terminal;write-srcdoc?encoding=base64;PCFET0NUWVBFPjxodG1sPjwvaHRtbD4=\x1B\\"
 ```
