@@ -10,6 +10,9 @@ class TermWindow extends Base {
         const { win, values, context } = this.options;
 
         const type = args.shift();
+        if ( type === 'config' ) {
+            return context.config;
+        }
         if ( type === 'show' ) {
             win.show();
             return;

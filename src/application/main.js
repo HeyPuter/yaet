@@ -110,6 +110,8 @@ const main = async () => {
         config = ANY.parse(path_.extname(found_config), data);
     })();
     
+    context.config = config;
+    
     const first = app.requestSingleInstanceLock();
     if ( ! first ) {
         app.quit();

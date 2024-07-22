@@ -55,12 +55,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     if ( globalThis.preload ) {
         preload.message('show');
+        const config = await globalThis.preload.message('config');
         const vals = await globalThis.preload.message('values');
-        for ( const k in vals ) {
-            term.write(`${k}: ${vals[k]}\r\n`);
-        }
+        const versions = [];
         for ( const name in preload.versions ) {
-            term.write(`${name}: ${preload.versions[name]()}\r\n`);
+            versions.push(`${preload.versions[name]()}`);
+        }
+        if ( ! config.no_version ) {
+            term.write(
+                `\x1B[36;1mYAET\x1B[0m ` +
+                `\x1B[2;37m(${versions.join(',')})\x1B[0m\r\n`);
         }
         preload.setters.set_on_pty(data => term.write(data));
         preload.message('spawn', vals.shell);
