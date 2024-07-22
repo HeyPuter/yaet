@@ -35,4 +35,5 @@ npm run start
 ```
 ### 📚 Docs
 
+- [Configuring YAET](./doc/Configuration.md)
 - [YAET OSC Extensions](./doc/OSC.md)
