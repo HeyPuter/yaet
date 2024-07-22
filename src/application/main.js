@@ -1,3 +1,5 @@
+if (require('electron-squirrel-startup')) app.quit();
+
 const {
     app,
     Menu,
