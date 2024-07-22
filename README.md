@@ -23,6 +23,8 @@ cd src/terminal
 rollup -c rollup.config.js --watch
 ```
 
+<br>
+
 ### ▶️ Run
 
 After following the steps above, running `npm start`
@@ -32,6 +34,10 @@ inside `src/application` should launch YAET.
 cd src/application
 npm run start
 ```
+
+<br>
+
+
 ### 📚 Docs
 
 - [Configuring YAET](./doc/Configuration.md)
