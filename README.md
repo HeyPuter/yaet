@@ -1,8 +1,18 @@
 <h3 align="center">YAET</h3>
 <h4 align="center">YAET: Another Terminal Emulator</h4>
+
+<p align="center">
+YAET is a terminal that can display web pages.
+</p>
+
 <h3 align="center"><img width="800" style="border-radius:5px;" alt="screenshot" src="https://assets.puter.site/yaet.webp"></h3>
 
 <hr>
+
+### ❓ What is this?
+
+YAET is a terminal emulator built on Xterm.js and Electron.
+It can interpret escape sequences that allow shell scripts and other programs to write HTML content directly to the terminal, or display content from the web.
 
 ### 📦 Setup
 
