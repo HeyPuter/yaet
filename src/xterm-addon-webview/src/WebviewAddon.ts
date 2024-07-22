@@ -46,9 +46,10 @@ export class WebviewAddon implements ITerminalAddon {
         this._terminal = terminal;
         this._renderService = terminal._core._renderService;
         terminal.parser.registerOscHandler(21337, data => {
-            console.log('here is the data: ' + data);
-            console.log('term?', terminal);
-            this.addWebview();
+            const PREFIX = 'web-terminal;write-srcdoc;';
+            if ( ! data.startsWith(PREFIX) ) return false;
+            data = data.slice(PREFIX.length);
+            this.addWebview({ srcdoc: data });
             return true;
         });
         
@@ -93,7 +94,8 @@ export class WebviewAddon implements ITerminalAddon {
         this.el.style.top = '0';
         this.el.style.left = '0';
         this.el.style.pointerEvents = 'none';
-        this.el.style.backgroundColor = 'rgba(255,255,0,0.2)';
+        // backdrop to debug the layer position
+        // this.el.style.backgroundColor = 'rgba(255,255,0,0.2)';
         this.el.style.overflow = 'hidden';
 
         this.el_inner = document.createElement('div');
@@ -109,7 +111,7 @@ export class WebviewAddon implements ITerminalAddon {
         return this._terminal._core._coreBrowserService?.window.document;
     }
     
-    public addWebview () {
+    public addWebview (options: { srcdoc: string }) {
         const buffer = this._terminal._core.buffer;
         let x = buffer.x;
         let y = buffer.y;
@@ -122,7 +124,7 @@ export class WebviewAddon implements ITerminalAddon {
             y++;
         }
         
-        const n_rows = Math.ceil(208 / this.cellSize.height);
+        const n_rows = Math.ceil(204 / this.cellSize.height);
         for ( let i=1 ; i < n_rows ; i++ ) {
             this._terminal.write('\r\n');
         }
@@ -131,10 +133,30 @@ export class WebviewAddon implements ITerminalAddon {
         
         console.log('aaa', buffer.y, y, buffer.ydisp);
 
-        const el = document.createElement('div');
+        // IIFE for typescript reasons
+        let el: HTMLElement = (() => {
+            const el = document.createElement('iframe');
+            // el.style.backgroundColor = 'blue';
+            el.style.border = 'none';
+            el.srcdoc = options.srcdoc;
+            el.style.pointerEvents = 'auto';
+            return el;
+        })();
+        
+        const borders = ['#000000', '#FFFFFF'];
+        for ( const border of borders ) {
+            const border_el = document.createElement('div');
+            el.style.boxSizing = 'border-box';
+            el.style.width = '100%';
+            el.style.height = '100%';
+            border_el.appendChild(el);
+            border_el.style.border = `2px solid ${border}`;
+            el = border_el;
+        }
+        el.style.boxSizing = 'border-box';
+
         el.style.width = '100%';
-        el.style.height = '208px';
-        el.style.backgroundColor = 'blue';
+        el.style.height = '204px';
         el.style.position = 'absolute';
         el.style.top = `${y*this.cellSize.height}px`;
         el.style.left = '0';
