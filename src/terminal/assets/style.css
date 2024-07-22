@@ -7,6 +7,7 @@ BODY {
 #terminal {
     height: 100vh;
     background-color: #333333;
+    overflow: hidden;
 }
 
 /*
@@ -18,4 +19,7 @@ BODY {
 }
 .xterm-viewport::-webkit-scrollbar{
     display: none;
+}
+#terminal iframe {
+    overflow-y: hidden;
 }

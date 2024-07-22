@@ -18,6 +18,7 @@ import type {
 } from '@xterm/addon-image/src/Types';
 
 type IFrameEntry = {
+    iframe: HTMLIFrameElement,
     el: HTMLElement,
     visible?: boolean,
 }
@@ -34,6 +35,12 @@ export class WebviewAddon implements ITerminalAddon {
     private _iframe_registry: { [key: number]: IFrameEntry };
     private _next_iframe_id: number = 0;
     private _iframe_rows_map: (number|undefined)[]
+
+    // Scroll detection, to prevent iframes from stopping scroll
+    private _scroll_cooldown: ReturnType<typeof setTimeout> | undefined;
+    private _last_ydisp: number = 0;
+    private _scrolling: boolean = false;
+
     constructor () {
         this._iframe_registry = {};
         this._iframe_rows_map = [];
@@ -42,6 +49,14 @@ export class WebviewAddon implements ITerminalAddon {
         const id = ++this._next_iframe_id;
         this._iframe_registry[id] = entry;
         return id;
+    }
+    
+    private _iframe_interaction (on: boolean) {
+        for ( const k in this._iframe_registry ) {
+            const iframe = this._iframe_registry[k].iframe;
+            if ( on ) iframe.style.pointerEvents = 'auto';
+            else iframe.style.pointerEvents = 'none';
+        }
     }
 
     public dispose(): void {
@@ -72,13 +87,11 @@ export class WebviewAddon implements ITerminalAddon {
             return true;
         });
         
-        console.log('what?');
         this._disposeLater(
             terminal.onRender(range => this.render(range)),
         )
     }
     web_handler_(data: string): boolean | Promise<boolean> {
-        console.log(data);
         return false;
     }
 
@@ -86,9 +99,25 @@ export class WebviewAddon implements ITerminalAddon {
         const { start, end } = range;
         const buffer = this._terminal._core.buffer;
         
-        console.log('render', range);
+        if ( buffer.ydisp !== this._last_ydisp ) {
+            if ( ! this._scrolling ) {
+                this._scrolling = true;
+                this._iframe_interaction(false);
+            }
 
-        // console.log('render() called!', range);
+            // TODO: this might cause lag if re-creating the
+            // timeout is heavy. The timestamp could be stored
+            // in addition so that could be checked instead.
+            if ( this._scroll_cooldown ) {
+                clearTimeout(this._scroll_cooldown);
+            }
+            this._scroll_cooldown = setTimeout(() => {
+                this._iframe_interaction(true);
+                this._scrolling = false;
+            }, 200);
+        }
+        this._last_ydisp = buffer.ydisp;
+        
         if ( ! this.el ) {
             this.insertLayerToDom();
         }
@@ -110,7 +139,6 @@ export class WebviewAddon implements ITerminalAddon {
         this._update_visible_iframes();
         
         // typescript made me do this
-        console.log('scroll?', buffer.ydisp * this.cellSize.height);
         this.el_inner.style.height = '' + (
             (buffer.ydisp + buffer._rows) * this.cellSize.height
         ) + 'px';
@@ -162,15 +190,12 @@ export class WebviewAddon implements ITerminalAddon {
         
         const n_rows = Math.ceil(204 / this.cellSize.height);
         for ( let i=1 ; i < n_rows ; i++ ) {
-            this._terminal.write('\r\n');
+            this._terminal.write(' \r\n');
         }
         
         y += buffer.ydisp;
         
-        console.log('aaa', buffer.y, y, buffer.ydisp);
-
-        // IIFE for typescript reasons
-        let el: HTMLElement = (() => {
+        const iframe_el = (() => {
             const el = document.createElement('iframe');
             // el.style.backgroundColor = 'blue';
             el.style.border = 'none';
@@ -178,6 +203,8 @@ export class WebviewAddon implements ITerminalAddon {
             el.style.pointerEvents = 'auto';
             return el;
         })();
+        
+        let el = iframe_el as HTMLElement;
         
         const borders = ['#000000', '#FFFFFF'];
         for ( const border of borders ) {
@@ -199,17 +226,19 @@ export class WebviewAddon implements ITerminalAddon {
 
         const entry: IFrameEntry = {
             el,
+            iframe: iframe_el,
             visible: true,
         };
         const id = this._register_iframe(entry);
         
-        for ( let i = y ; i < y + n_rows ; i++ ) {
-            const line = buffer.lines.get(i);
-            console.log('line?', line);
-            // TODO: I don't know why line is undefined sometimes
-            if ( ! line ) continue;
-            this._writeToCell(line, id);
-        }
+        setTimeout(() => {
+            for ( let i = y ; i < y + n_rows ; i++ ) {
+                const line = buffer.lines.get(i);
+                // TODO: I don't know why line is undefined sometimes
+                if ( ! line ) continue;
+                this._writeToCell(line, id);
+            }
+        }, 0);
         
         this.el_inner?.appendChild(el);
     }
