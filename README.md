@@ -14,6 +14,8 @@ YAET is a terminal that can display web pages.
 YAET is a terminal emulator built on Xterm.js and Electron.
 It can interpret escape sequences that allow shell scripts and other programs to write HTML content directly to the terminal, or display content from the web.
 
+<br>
+
 ### 📦 Setup
 
 You will need to run `npm install`. You may also need to run `electron-rebuild`
