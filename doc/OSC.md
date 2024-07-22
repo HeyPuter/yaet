@@ -62,3 +62,18 @@ with other terminal emulators it is best to transmit unicode strings as base64.
 ```sh
 echo -e "\x1B]21337;web-terminal;write-srcdoc?encoding=base64;PCFET0NUWVBFPjxodG1sPjwvaHRtbD4=\x1B\\"
 ```
+
+### `write-src`
+
+This command will make YAET render an iframe displaying the specified
+page, following the same rendering rules as `write-srcdoc`.
+
+| Parameter  | Description |
+| ---------- | ----------- |
+| `height`   | height of frame in pixels |
+
+#### Example
+
+```sh
+echo -e "\x1B]21337;web-terminal;write-srcdoc;https://example.com\x1B\\"
+```

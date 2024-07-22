@@ -24,7 +24,8 @@ type IFrameEntry = {
 }
 
 type IWriteSrcdocOptions = {
-    srcdoc: string,
+    srcdoc?: string,
+    src?: string,
     height?: string,
 }
 
@@ -106,6 +107,30 @@ export class WebviewAddon implements ITerminalAddon {
                 data = Buffer.from(data, 'base64').toString('utf-8');
             }
             this.addWebview({ ...options, srcdoc: data });
+            return true;
+        });
+        terminal.parser.registerOscHandler(21337, data => {
+            const PREFIX = 'web-terminal;write-src';
+            if ( ! data.startsWith(PREFIX) ) return false;
+            data = data.slice(PREFIX.length);
+            const options: { [key: string]: string } = {};
+            if ( data[0] === '?' ) {
+                const i = data.indexOf(';');
+                if ( i === -1 ) {
+                    console.warn('missing semicolon in 21337 OSC sequence');
+                    return false;
+                }
+                const querystring = data.slice(0, i);
+                const params = new URLSearchParams(querystring);
+                for (const [k, v] of params) {
+                    options[k] = v;
+                }
+                data = data.slice(i+1);
+            } else data = data.slice(1);
+            if ( options.encoding && options.encoding === 'base64' ) {
+                data = Buffer.from(data, 'base64').toString('utf-8');
+            }
+            this.addWebview({ ...options, src: data });
             return true;
         });
         
@@ -223,7 +248,11 @@ export class WebviewAddon implements ITerminalAddon {
             const el = document.createElement('iframe');
             // el.style.backgroundColor = 'blue';
             el.style.border = 'none';
-            el.srcdoc = options.srcdoc;
+            if ( options.srcdoc ) {
+                el.srcdoc = options.srcdoc;
+            } else {
+                el.src = options.src ?? 'about:blank';
+            }
             el.style.pointerEvents = 'auto';
             return el;
         })();
