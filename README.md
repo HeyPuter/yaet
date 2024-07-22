@@ -1,6 +1,14 @@
-# Electron Terminal
+<h3 align="center">YAET</h3>
+<h4 align="center">Yet Another Terminal Emulator</h4>
+</h3>
 
-## Installation
+<hr>
+
+### 📦 Setup
+
+You will need to run `npm install`. You may also need to run `electron-rebuild`
+within `src/application`.
+
 ```
 npm install
 cd src/application
@@ -8,23 +16,19 @@ npx electron-rebuild -f -w node-pty
 cd -
 ```
 
-## Development Setup
-in a new terminal window:
+You will need to run `rollup` inside `src/terminal`.
+
 ```
 cd src/terminal
 rollup -c rollup.config.js --watch
 ```
 
-## Run
+### ▶️ Run
 
-### Start the daemon
+After following the steps above, running `npm start`
+inside `src/application` should launch YAET.
+
 ```
 cd src/application
 npm run start
-```
-
-### Open a terminal window
-```
-cd src/cli
-node main term
 ```
