@@ -6,5 +6,5 @@ cd src/terminal
 npx rollup -c rollup.config.js
 cd -
 
-rm -rf src/application/static/terminal
-cp -r src/terminal/dist/ src/application/static/terminal
+rm -rf src/yaet/static/terminal
+cp -r src/terminal/dist/ src/yaet/static/terminal

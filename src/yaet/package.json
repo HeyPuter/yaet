@@ -1,5 +1,5 @@
 {
-  "name": "application",
+  "name": "yaet",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
@@ -11,7 +11,7 @@
   "keywords": [],
   "author": "",
   "license": "UNLICENSED",
-  "description": "",
+  "description": "YAET: Another Electron Terminal",
   "devDependencies": {
     "@electron-forge/cli": "^7.4.0",
     "@electron-forge/maker-deb": "^7.4.0",
