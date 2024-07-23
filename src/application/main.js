@@ -41,8 +41,7 @@ const open_window = (data) => {
             }
         });
         context.windowManager.register(win.webContents.id, window);
-        
-        win.loadURL('http://term.et.localhost:1337');
+        win.loadFile('static/terminal/index.html');
         return;
     }
     if ( data.type === 'website' ) {
@@ -54,28 +53,6 @@ const open_window = (data) => {
         win.loadURL(data.url);
         return;
     }
-};
-
-const start_webserver = () => {
-    const port = 1337;
-    
-    const express = require('express');
-
-    const e_app = express();
-    const e_term = express();
-    
-    const path_ = require('node:path');
-    e_term.use('/', express.static(
-        path_.join(__dirname, '../terminal/dist')));
-
-    e_app.use(vhost('term.et.localhost', e_term));
-    e_app.use(require('body-parser').json());
-    
-    e_app.post('/open', (req, res) => {
-        open_window(req.body);
-        res.json({ status: 'ok' });
-    });
-    e_app.listen(port);
 };
 
 const main = async () => {
@@ -112,12 +89,14 @@ const main = async () => {
     
     context.config = config;
     
-    const first = app.requestSingleInstanceLock();
-    if ( ! first ) {
-        app.quit();
-        return;
+    if ( config.single_instance ) {
+        const first = app.requestSingleInstanceLock();
+        if ( ! first ) {
+            app.quit();
+            return;
+        }
     }
-    
+        
     await app.whenReady();
     
     ipcMain.handle('message', (e, ...args) => {
@@ -129,24 +108,24 @@ const main = async () => {
     //     // NOOP: prevent default exit behavior
     // });
     
-    app.on('second-instance', (
-        event, commandLine, workingDirectory,
-        additionalData,
-    ) => {
-        open_window({
-            type: 'term',
-            shell: process.env.SHELL || '/bin/bash',
-            pwd: workingDirectory,
+    if ( config.single_instance ) {
+        app.on('second-instance', (
+            event, commandLine, workingDirectory,
+            additionalData,
+        ) => {
+            open_window({
+                type: 'term',
+                shell: process.env.SHELL || '/bin/bash',
+                pwd: workingDirectory,
+            });
         });
-    });
+    }
 
     open_window({
         type: 'term',
         shell: process.env.SHELL || '/bin/bash',
         pwd: process.cwd(),
     });
-
-    start_webserver();
 
     if ( ! config.no_tray ) {
         const tray = new Tray('assets/trayicon.png');
