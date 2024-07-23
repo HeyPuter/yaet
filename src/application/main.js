@@ -127,7 +127,7 @@ const main = async () => {
         pwd: process.cwd(),
     });
 
-    if ( ! config.no_tray ) {
+    if ( config.show_tray ) {
         const tray = new Tray('assets/trayicon.png');
         const main_menu = Menu.buildFromTemplate([
             { label: 'Quit', role: 'quit' }
