@@ -14,6 +14,16 @@ YAET is a terminal that can display web pages.
 YAET is a terminal emulator built on Xterm.js and Electron.
 It can interpret escape sequences that allow shell scripts and other programs to write HTML content directly to the terminal, or display content from the web.
 
+### ⚠️ Security Implications
+
+This application is **experimental** and you should only use it with scripts and programs
+that you trust. While the security mechanisms in Chromium will prevent the iframe from
+doing anything crazy of its own accord, it's important to be mindful of
+**click-jacking**, **tracking the client**, and any **vulnerabilities** that might be
+discovered in the future.
+
+- See [Security.md](./doc/Security.md) for more information.
+
 <br>
 
 ### 📦 Setup
@@ -54,3 +64,12 @@ npm run start
 
 - [Configuring YAET](./doc/Configuration.md)
 - [YAET OSC Extensions](./doc/OSC.md)
+
+<br>
+
+### 🌐 Similar Projects
+
+- [DomTerm](https://domterm.org/Wire-byte-protocol.html)
+  can also render HTML via [an escape sequence](https://domterm.org/Wire-byte-protocol.html).
+  This terminal emulator is more mature than YAET, so if you're looking for a daily driver
+  this might be a better choice.
