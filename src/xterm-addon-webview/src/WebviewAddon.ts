@@ -113,6 +113,7 @@ export class WebviewAddon implements ITerminalAddon {
             const PREFIX = 'web-terminal;write-src';
             if ( ! data.startsWith(PREFIX) ) return false;
             data = data.slice(PREFIX.length);
+            if ( ![';','?'].includes(data[0]) ) return false;
             const options: { [key: string]: string } = {};
             if ( data[0] === '?' ) {
                 const i = data.indexOf(';');

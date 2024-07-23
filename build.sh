@@ -1,3 +1,7 @@
+cd src/xterm-addon-webview
+npx tsc
+cd -
+
 cd src/terminal
 npx rollup -c rollup.config.js
 cd -
