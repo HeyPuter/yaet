@@ -77,3 +77,17 @@ page, following the same rendering rules as `write-srcdoc`.
 ```sh
 echo -e "\x1B]21337;web-terminal;write-srcdoc;https://example.com\x1B\\"
 ```
+### `detach-all`
+
+This command will disable pointer events and the postMessage API on all
+previous iframes.
+
+| Parameter  | Description |
+| ---------- | ----------- |
+| `height`   | height of frame in pixels |
+
+#### Example
+
+```sh
+echo -e "\x1B]21337;web-terminal;detach-all\x1B\\"
+```

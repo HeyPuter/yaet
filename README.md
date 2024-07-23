@@ -23,6 +23,8 @@ doing anything crazy of its own accord, it's important to be mindful of
 discovered in the future.
 
 - See [Security.md](./doc/Security.md) for more information.
+- See [PostMessageAPI.md](./doc/PostMessageAPI.md) to see what/when
+  communication is allowed to/from iframes.
 
 <br>
 
