@@ -39,7 +39,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     const imageAddon = new ImageAddon();
     term.loadAddon(imageAddon);
     
-    term.loadAddon(new WebviewAddon());
+    const postmessage_api = {
+        ['write-stdin']: ({ text }) => {
+            // only accept ascii characters to avoid security minefield
+            text = text.replace(/[^\x20-\x7E]/g, '');
+            const escaped = `\x1B]21337;${text}\x1B\\`;
+            preload.message('stdin', escaped);
+        }
+    };
+    
+    term.loadAddon(new WebviewAddon({
+        on_iframe_create: ({ entry }) => {
+            const { api_safe, iframe } = entry;
+            if ( ! api_safe ) return;
+            const fn = event => {
+                if ( event.source !== iframe.contentWindow ) return;
+                const data = event.data;
+                if ( ! data.command ) {
+                    return;
+                }
+                if ( ! postmessage_api.hasOwnProperty(data.command) ) {
+                    return;
+                }
+                postmessage_api[data.command](data);
+            };
+            entry.listener = fn;
+            window.addEventListener('message', fn);
+        },
+        on_iframe_detach: ({ entry }) => {
+            if ( entry.listener ) {
+                window.removeEventListener('message', entry.listener);
+            }
+            delete entry.listener;
+            entry.iframe.style.opacity = '0.8';
+        }
+    }));
     
     // This isn't really working
     // const ligaturesAddon = new LigaturesAddon();

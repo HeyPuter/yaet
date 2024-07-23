@@ -18,6 +18,8 @@ import type {
 } from '@xterm/addon-image/src/Types';
 
 type IFrameEntry = {
+    detached: boolean,
+    api_safe: boolean,
     iframe: HTMLIFrameElement,
     el: HTMLElement,
     visible?: boolean,
@@ -28,6 +30,8 @@ type IWriteSrcdocOptions = {
     src?: string,
     height?: string,
 }
+
+type IIframeCallback = (o: { entry: IFrameEntry, id: number }) => void
 
 export class WebviewAddon implements ITerminalAddon {
     private _terminal: any
@@ -46,19 +50,43 @@ export class WebviewAddon implements ITerminalAddon {
     private _scroll_cooldown: ReturnType<typeof setTimeout> | undefined;
     private _last_ydisp: number = 0;
     private _scrolling: boolean = false;
+    
+    private _on_iframe_create: IIframeCallback | undefined;
+    private _on_iframe_detach: IIframeCallback | undefined;
 
-    constructor () {
+    constructor (options: {
+        on_iframe_create?: IIframeCallback,
+        on_iframe_detach?: IIframeCallback,
+    } = {}) {
         this._iframe_registry = {};
         this._iframe_rows_map = [];
+        this._on_iframe_create = options.on_iframe_create;
+        this._on_iframe_detach = options.on_iframe_detach;
     }
     private _register_iframe(entry: IFrameEntry) {
         const id = ++this._next_iframe_id;
         this._iframe_registry[id] = entry;
+        if ( this._on_iframe_create ) {
+            this._on_iframe_create({ entry, id });
+        }
         return id;
+    }
+    
+    private _detach_all () {
+        console.log('called');
+        for ( const id in this._iframe_registry ) {
+            const entry = this._iframe_registry[id];
+            entry.detached = true;
+            entry.iframe.style.pointerEvents = 'none';
+            if ( this._on_iframe_detach ) {
+                this._on_iframe_detach({ entry, id: Number.parseInt(id) });
+            }
+        }
     }
     
     private _iframe_interaction (on: boolean) {
         for ( const k in this._iframe_registry ) {
+            if ( this._iframe_registry[k].detached ) continue;
             const iframe = this._iframe_registry[k].iframe;
             if ( on ) iframe.style.pointerEvents = 'auto';
             else iframe.style.pointerEvents = 'none';
@@ -132,6 +160,14 @@ export class WebviewAddon implements ITerminalAddon {
                 data = Buffer.from(data, 'base64').toString('utf-8');
             }
             this.addWebview({ ...options, src: data });
+            return true;
+        });
+        terminal.parser.registerOscHandler(21337, data => {
+            const PREFIX = 'web-terminal;detach-all';
+            if ( ! data.startsWith(PREFIX) ) return false;
+            data = data.slice(PREFIX.length);
+            // if ( ![';','?'].includes(data[0]) ) return false;
+            this._detach_all();
             return true;
         });
         
@@ -245,13 +281,17 @@ export class WebviewAddon implements ITerminalAddon {
         
         y += buffer.ydisp;
         
+        let api_safe = false;
+        
         const iframe_el = (() => {
             const el = document.createElement('iframe');
             // el.style.backgroundColor = 'blue';
             el.style.border = 'none';
             if ( options.srcdoc ) {
+                api_safe = true;
                 el.srcdoc = options.srcdoc;
             } else {
+                api_safe = false;
                 el.src = options.src ?? 'about:blank';
             }
             el.style.pointerEvents = 'auto';
@@ -280,6 +320,8 @@ export class WebviewAddon implements ITerminalAddon {
         el.style.left = '0';
 
         const entry: IFrameEntry = {
+            detached: false,
+            api_safe,
             el,
             iframe: iframe_el,
             visible: true,
